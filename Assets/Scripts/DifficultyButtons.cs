@@ -2,14 +2,23 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// Functinoality for the DifficultyButtons on the Bottom-Bar 
+/// to change the difficulty by setting up a new minefield.
+/// Difficutly is 'easy' by default
+/// </summary>
 public class DifficultyButtons : MonoBehaviour {
 
-    public Minefield minefield;
+    public Minefield minefield; // Maybe its better to do a singleton
+
+    /// <summary>
+    /// The current Difficulty
+    /// </summary>
     public string currentDifficulty = "easy";
         
-    void Start () {
-        this.minefield = GameObject.FindGameObjectWithTag("Minefield").GetComponent<Minefield>();
-        this.SetEasy();
+    private void Start () {
+        minefield = GameObject.FindGameObjectWithTag("Minefield").GetComponent<Minefield>();
+        SetEasy();
     }
 
     /// <summary>
@@ -17,8 +26,8 @@ public class DifficultyButtons : MonoBehaviour {
     /// Sets the Minefield to 10x10 with 10 mines
     /// </summary>
     public void SetEasy () {
-        this.minefield.CreateMineField(10, 10, 10);
-        this.currentDifficulty = "easy";
+        minefield.CreateMineField(10, 10, 10);
+        currentDifficulty = "easy";
     }
 
     /// <summary>
@@ -26,8 +35,8 @@ public class DifficultyButtons : MonoBehaviour {
     /// Sets the Minefield to 20x20 with 40 mines
     /// </summary>
     public void SetMedium () {
-	    this.minefield.CreateMineField(20, 20, 40);
-	    this.currentDifficulty = "medium";
+	    minefield.CreateMineField(20, 20, 40);
+	    currentDifficulty = "medium";
     }
 
     /// <summary>
@@ -35,8 +44,8 @@ public class DifficultyButtons : MonoBehaviour {
     /// Sets thte Minefield to 30x20 with 60 mines
     /// </summary>
     public void SetHard () {
-	    this.minefield.CreateMineField(30, 20, 60);
-	    this.currentDifficulty = "hard";
+	    minefield.CreateMineField(30, 20, 60);
+	    currentDifficulty = "hard";
     }
 
     /// <summary>
@@ -44,11 +53,15 @@ public class DifficultyButtons : MonoBehaviour {
     /// Takes the same difficulty and creates the minefield new
     /// </summary>
     public void ResetGame () {
-        if (this.currentDifficulty == "easy") {
+        if (currentDifficulty == "easy") {
             SetEasy();
-        } else if (this.currentDifficulty == "medium") {
+        }
+
+        if (currentDifficulty == "medium") {
             SetMedium();
-        } else if(this.currentDifficulty == "hard") {
+        }
+
+        if (currentDifficulty == "hard") {
             SetHard();
         }
     }

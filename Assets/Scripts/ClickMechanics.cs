@@ -2,32 +2,37 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// Handles the User-Mouse-Input: Changes the tiles-sprites and its logic behind it.
+/// 
+/// The Creation of the mines is in this script to make sure that the first click is no mine.
+/// </summary>
 public class ClickMechanics : MonoBehaviour {
-
-    public Minefield minefield;
+    
+    public Minefield minefield;     
     public SpriteController spriteController;
     public Tile tile;
         
-    void Start () {
-        this.minefield = GameObject.FindGameObjectWithTag("Minefield").GetComponent<Minefield>();
-        this.spriteController = this.GetComponent<SpriteController>();
-        this.tile = this.GetComponent<Tile>();
+    private void Start () {
+        minefield = GameObject.FindGameObjectWithTag("Minefield").GetComponent<Minefield>(); // Maybe use singleton intead
+        spriteController = GetComponent<SpriteController>();
+        tile = GetComponent<Tile>();
     }
 
     private void OnMouseUpAsButton () {
-        this.ClickTile();
+        ClickTile();
     }
 
     public void OnMouseOver () {
-        if(Input.GetMouseButtonDown(1)){
-            if(this.tile.isSecured){
-                this.spriteController.SetDefaultTileSprite();
-                this.tile.isSecured = false;
-                this.minefield.minesLeft++;
-            }else{
-                this.spriteController.SetSecuredTileSprite();
-                this.tile.isSecured = true;
-                this.minefield.minesLeft--;
+        if (Input.GetMouseButtonDown(1)) {
+            if (tile.isSecured) {
+                spriteController.SetDefaultTileSprite();
+                tile.isSecured = false;
+                minefield.minesLeft++;
+            } else {
+                spriteController.SetSecuredTileSprite();
+                tile.isSecured = true;
+                minefield.minesLeft--;
             }
         }
     }
@@ -38,44 +43,45 @@ public class ClickMechanics : MonoBehaviour {
     public void ClickTile () {
         
         //  If game has not been started yet
-        if (!this.minefield.hasGameStarted) {
-            this.minefield.hasGameStarted = true;
+        if (!minefield.hasGameStarted) {
+            minefield.hasGameStarted = true;
 
-            this.CreateMines();
-            this.minefield.timer.StartTimer();
+            CreateMines();
+            minefield.timer.StartTimer();
         }
 
         //  If the tile is a mine --> end of the game
-        if (this.tile.isMine) {
-            this.minefield.LoseGame();
+        if (tile.isMine) {
+            minefield.LoseGame();
             return;
         } 
 
+        //  Reveal all nearby tiles
+        RevealTile();
 
-        this.RevealTile();
-
-        if (this.minefield.IsGameWon()) {
-            this.minefield.WinGame();
+        //  Check if game is won
+        if (minefield.IsGameWon()) {
+            minefield.WinGame();
         }
-        
-
     }
 
     /// <summary>
-    /// Creates mines randomly about the field
+    /// Creates mines randomly about the field.
     /// </summary>
-    private  void CreateMines () {
+    private void CreateMines () {
         Debug.Log("Create Mines");
+                
+        int minesLeft = minefield.amountMines;
+        int tilesLeft = minefield.amountTilesUnrevealed;
 
-        int minesLeft = this.minefield.amountMines;
-        int tilesLeft = this.minefield.amountTilesUnrevealed;
+        //  go through the whole minefield
+        for (int x = 0; x < minefield.xTotal; x++) {
+            for (int y = 0; y < minefield.yTotal; y++) {
 
-        for (int x = 0; x < this.minefield.xTotal; x++) {
-            for (int y = 0; y < this.minefield.yTotal; y++) {
+                if (!(x== tile.x && y == tile.y)) {
+                    Tile aTile = minefield.tiles[x, y];
 
-                if (!(x== this.tile.x && y == this.tile.y)) {
-                    Tile aTile = this.minefield.tiles[x, y];
-
+                    //  Create a chance depending on how many mines are left, to create mine
                     float chanceForMine = (float) minesLeft / (float) tilesLeft;
 
                     if (Random.value <= chanceForMine) {
@@ -87,7 +93,6 @@ public class ClickMechanics : MonoBehaviour {
                 tilesLeft--;
             }
         }
-
     }
     
     /// <summary>
@@ -96,27 +101,32 @@ public class ClickMechanics : MonoBehaviour {
     private void RevealTile () {
 
         //  If tile is not revealed yet and its not a mine
-        if (!this.tile.isReveald && !this.tile.isMine) {
-            this.tile.isReveald = true;
-            this.minefield.amountTilesUnrevealed--;
+        if (!tile.isReveald && !tile.isMine) {
+            tile.isReveald = true;
+            minefield.amountTilesUnrevealed--;
 
-            int amountNeighbourMines = this.GetAmountNeighbourMines();
+            int amountNeighbourMines = GetAmountNeighbourMines();
 
-            this.spriteController.SetEmptyTileSprite(amountNeighbourMines);
+            spriteController.SetEmptyTileSprite(amountNeighbourMines);
 
             //  If there is no Nightbour Mine
             if (amountNeighbourMines == 0) {
-                this.RevealIfValid(this.tile.x - 1, this.tile.y - 1);
-                this.RevealIfValid(this.tile.x - 1, this.tile.y);
-                this.RevealIfValid(this.tile.x - 1, this.tile.y + 1);
 
-                this.RevealIfValid(this.tile.x, this.tile.y - 1);
+                //  Check all tiles  on the left
+                RevealIfValid(tile.x - 1, tile.y - 1);
+                RevealIfValid(tile.x - 1, tile.y);
+                RevealIfValid(tile.x - 1, tile.y + 1);
 
-                this.RevealIfValid(this.tile.x, this.tile.y + 1);
+                //  Check the tile on the bottom
+                RevealIfValid(tile.x, tile.y - 1);
 
-                this.RevealIfValid(this.tile.x + 1, this.tile.y - 1);
-                this.RevealIfValid(this.tile.x + 1, this.tile.y);
-                this.RevealIfValid(this.tile.x + 1, this.tile.y + 1);
+                //  Check the tile on the top
+                RevealIfValid(tile.x, tile.y + 1);
+
+                //  Check all tiles on the right
+                RevealIfValid(tile.x + 1, tile.y - 1);
+                RevealIfValid(tile.x + 1, tile.y);
+                RevealIfValid(tile.x + 1, tile.y + 1);
             }
         }
     }
@@ -127,9 +137,9 @@ public class ClickMechanics : MonoBehaviour {
     /// <param name="x">The X-Position to reveal</param>
     /// <param name="y">The Y-Position to reveal</param>
     private void RevealIfValid (int x, int y) {
-        if( x >= 0 && x < this.minefield.xTotal 
-            && y >= 0 && y < this.minefield.yTotal){
-            this.minefield.tiles[x, y].clickMechanics.RevealTile();
+        if (x >= 0 && x < minefield.xTotal 
+            && y >= 0 && y < minefield.yTotal) {
+            minefield.tiles[x, y].clickMechanics.RevealTile();
         }
     }
 
@@ -141,17 +151,21 @@ public class ClickMechanics : MonoBehaviour {
     private int GetAmountNeighbourMines () {
         int mineCounter = 0;
 
-        if (this.HasMine(this.tile.x - 1, this.tile.y - 1)) mineCounter++;
-        if (this.HasMine(this.tile.x - 1, this.tile.y )) mineCounter++;
-        if (this.HasMine(this.tile.x - 1, this.tile.y + 1)) mineCounter++;
+        //  Check all tiles on the left
+        if (HasMine(tile.x - 1, tile.y - 1)) mineCounter++;
+        if (HasMine(tile.x - 1, tile.y )) mineCounter++;
+        if (HasMine(tile.x - 1, tile.y + 1)) mineCounter++;
 
-        if (this.HasMine(this.tile.x, this.tile.y - 1)) mineCounter++;
+        //  Check the tile on the bottom
+        if (HasMine(tile.x, tile.y - 1)) mineCounter++;
 
-        if (this.HasMine(this.tile.x, this.tile.y + 1)) mineCounter++;
+        //  Check the tile on the top
+        if (HasMine(tile.x, tile.y + 1)) mineCounter++;
 
-        if (this.HasMine(this.tile.x + 1, this.tile.y - 1)) mineCounter++;
-        if (this.HasMine(this.tile.x + 1, this.tile.y)) mineCounter++;
-        if (this.HasMine(this.tile.x + 1, this.tile.y + 1)) mineCounter++;
+        //  Check all tiles on the right
+        if (HasMine(tile.x + 1, tile.y - 1)) mineCounter++;
+        if (HasMine(tile.x + 1, tile.y)) mineCounter++;
+        if (HasMine(tile.x + 1, tile.y + 1)) mineCounter++;
 
         return mineCounter;
     }
@@ -165,8 +179,8 @@ public class ClickMechanics : MonoBehaviour {
     private bool HasMine (int x, int y) {
         bool hasMine = false;
 
-        if (x >= 0 && x < this.minefield.xTotal && y >= 0 && y < this.minefield.yTotal) {
-                hasMine = this.minefield.tiles[x, y].isMine;
+        if (x >= 0 && x < minefield.xTotal && y >= 0 && y < minefield.yTotal) {
+            hasMine = minefield.tiles[x, y].isMine;
         }
 
         return hasMine;

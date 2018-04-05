@@ -6,6 +6,8 @@ TagManager:
   tags:
   - Tiles
   - Minefield
+  - TopBar
+  - BottomBar
   layers:
   - Default
   - TransparentFX

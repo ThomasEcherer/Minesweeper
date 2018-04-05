@@ -2,6 +2,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// The Minefield to solve.
+/// Contents the Amount of Columns and Rows. 
+/// </summary>
 public class Minefield : MonoBehaviour {
 
     /// <summary>
@@ -52,24 +56,27 @@ public class Minefield : MonoBehaviour {
     /// <param name="amountMines">Amount of mines to create</param>
     public void CreateMineField (int xTotal, int yTotal, int amountMines) {
 
+        //  save Starting parameters
         this.xTotal = xTotal;
         this.yTotal = yTotal;
         this.amountMines = amountMines;
-        this.amountTilesUnrevealed = xTotal * yTotal;
-        this.hasGameStarted = false;
-        this.minesLeft = amountMines;
-        this.timer.ResetTimer();
-        this.resetGameButton.SetNeutral();
+
+        //  Init Game
+        amountTilesUnrevealed = xTotal * yTotal;
+        hasGameStarted = false;
+        minesLeft = amountMines;
+        timer.ResetTimer();
+        resetGameButton.SetNeutral();
 
         //  Delete Tiles if there are tiles already
-        if (this.tiles != null) {
-            foreach (Tile tile in this.tiles) {
+        if (tiles != null) {
+            foreach (Tile tile in tiles) {
                 Destroy(tile.gameObject);
             }
         }
 
         //  Initalize tiles
-        this.tiles = new Tile[xTotal, yTotal];
+        tiles = new Tile[xTotal, yTotal];
 
         //  Create the tiles for the minefield
         for (int x = 0; x < xTotal; x++) {
@@ -78,11 +85,9 @@ public class Minefield : MonoBehaviour {
             }
         }
 
-        //  Move Bars to correct positions
+        //  Move UI-Bars to correct positions
         GameObject.FindGameObjectWithTag("TopBar").GetComponent<Bar>().SetPosition(this);
         GameObject.FindGameObjectWithTag("BottomBar").GetComponent<Bar>().SetPosition(this);
-
-
     }
 
     /// <summary>
@@ -90,7 +95,7 @@ public class Minefield : MonoBehaviour {
     /// </summary>
     /// <returns>Returns TRUE if the game is won. Returns FALSE otherwise</returns>
     public bool IsGameWon() {
-        if (amountTilesUnrevealed == this.amountMines) {
+        if (amountTilesUnrevealed == amountMines) {
             return true;
         } else {
             return false;
@@ -102,10 +107,10 @@ public class Minefield : MonoBehaviour {
     /// </summary>
     public void LoseGame() {
         Debug.Log("Game Lost");
-        this.timer.StopTimer();
-        this.resetGameButton.SetSad();
+        timer.StopTimer();
+        resetGameButton.SetSad();
 
-        foreach (Tile tile in this.tiles) {
+        foreach (Tile tile in tiles) {
             if (!tile.isMine) {
                 tile.GetComponent<BoxCollider2D>().enabled = false;
             } else {
@@ -120,16 +125,16 @@ public class Minefield : MonoBehaviour {
     public void WinGame() {
         Debug.Log("Win Game");
 
-        this.timer.StopTimer();
-        this.resetGameButton.SetHappy();
+        timer.StopTimer();
+        resetGameButton.SetHappy();
 
-        foreach (Tile tile in this.tiles) {
+        foreach (Tile tile in tiles) {
             if (tile.isMine) {
                 tile.spriteController.SetSecuredMineSprite();
             }
         }
 
-        this.highscore.UpdateHighscore(this.timer.GetCurrentTime());
+        highscore.UpdateHighscore(timer.GetCurrentTime());
     }
 
 }
